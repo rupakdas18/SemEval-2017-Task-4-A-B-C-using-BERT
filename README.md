@@ -1,7 +1,7 @@
 # Research-Project-UMD-CS-5642
 
 
-This project describes the BERT model which is a transformer-based architecture.  has been used in task 4A, English Language, Sentiment Analysis in Twitter of SemEval2017. BERT is a very powerful model for classification tasks when the number of training data is small. For this experiment, we have used BERT{\textsubscript{\tiny BASE}} model which has 12 hidden layers. This model provides better accuracy, precision, recall, f1 score than the Naive Bayes baseline model. It performs better in binary classification subtask than the multi-class classification subtasks. We also considered all kinds of ethical issues during this experiment as Twitter data contains personal and sensible information.
+This project describes the BERT model which is a transformer-based architecture.  BERT has been used in task 4(A,B,C), English Language, Sentiment Analysis in Twitter of SemEval2017. BERT is a very powerful model for classification tasks when the number of training data is small. For this experiment, we have used BERT{\textsubscript{\tiny BASE}} model which has 12 hidden layers. This model provides better accuracy, precision, recall, f1 score than the Naive Bayes baseline model. It performs better in binary classification subtask than the multi-class classification subtasks. We also considered all kinds of ethical issues during this experiment as Twitter data contains personal and sensible information.
 
 **Task Description:**
 

@@ -268,7 +268,7 @@ df_stats = df_stats.set_index('epoch')
 #df = df.style.set_table_styles([dict(selector="th",props=[('max-width', '70px')])])
 
 # Display the table.
-df_stats
+print(df_stats)
 
 
 import matplotlib.pyplot as plt

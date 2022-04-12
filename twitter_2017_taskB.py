@@ -1,5 +1,4 @@
-# Import libraries
-
+!pip install transformers
 import random
 import torch
 import numpy as np
@@ -8,15 +7,12 @@ from tqdm import tqdm
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from transformers import BertTokenizer
 
-# Device selection
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the BERT tokenizer.
 print('Loading BERT tokenizer...')
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
-
-# Load dataset
 train_data_df = pd.read_csv("data/twitter-2016train-BD.txt", delimiter='\t', header=None, names=['id','topic','label', 'tweet'])
 val_data_df = pd.read_csv("data/twitter-2016devtest-BD.txt", delimiter='\t', header=None, names=['id','topic','label', 'tweet'])
 
@@ -29,7 +25,8 @@ val_topic = val_data_df.topic.values
 y_val = val_data_df.label.values
 
 
-# Convert string classes into numeric classes
+print(train_data_df.sample(5))
+
 train_labels=[]
 val_labels=[]
 label_dict = {'negative':0,'positive':1}
@@ -39,14 +36,11 @@ for label in y_train:
 
 for label in y_val:
   val_labels.append(label_dict[label])
-
-
-# Print length of train and validation data
+  
+  
 print(len(train_labels))
 print(len(val_labels))
 
-
-# Data Processing
 def processdata(topics,tweets,labels):
   input_ids = []
   attention_masks = []
@@ -75,13 +69,9 @@ def processdata(topics,tweets,labels):
 train_input_ids,train_attention_masks,train_token_type_ids,train_labels = processdata(train_topic,train_tweet,train_labels)
 val_input_ids,val_attention_masks,val_token_type_ids,val_labels = processdata(val_topic,val_tweet,val_labels)
 
-
-# Convert into TensorData
 train_dataset = TensorDataset(train_input_ids, train_attention_masks,train_token_type_ids,train_labels)
 val_dataset = TensorDataset(val_input_ids, val_attention_masks,val_token_type_ids,val_labels)
 
-
-# Create dataLoader
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 batch_size = 32
 
@@ -99,7 +89,7 @@ validation_dataloader = DataLoader(
             batch_size = batch_size # Evaluate with this batch size.
         )
 
-# Create DataLoader
+
 from transformers import BertForSequenceClassification, AdamW, BertConfig
 
 # Load BertForSequenceClassification, the pretrained BERT model with a single 
@@ -116,15 +106,14 @@ model = BertForSequenceClassification.from_pretrained(
 model.cuda()
 
 
-# Optimizer design
 optimizer = AdamW(model.parameters(),
                   lr = 2e-5, # args.learning_rate - default is 5e-5, our notebook had 2e-5
                   eps = 1e-8 # args.adam_epsilon  - default is 1e-8.
                 )
 
-# Epochs and scheduler design
 from transformers import get_linear_schedule_with_warmup
 
+# Number of training epochs. The BERT authors recommend between 2 and 4. 
 EPOCHS = 4
 
 # Total number of training steps is [number of batches] x [number of epochs]. 
@@ -136,11 +125,9 @@ scheduler = get_linear_schedule_with_warmup(optimizer,
                                             num_warmup_steps = 0, # Default value in run_glue.py
                                             num_training_steps = total_steps)
 
-# Accuracy Function
 def accuracy(y_pred, y_test):
   acc = (torch.log_softmax(y_pred, dim=1).argmax(dim=1) == y_test).sum().float() / float(y_test.size(0))
   return acc
-
 
 import time
 import datetime
@@ -154,9 +141,7 @@ def format_time(elapsed):
     
     # Format as hh:mm:ss
     return str(datetime.timedelta(seconds=elapsed_rounded))
-
-
-# Train model
+  
 training_stats=[]
 def train(model, train_loader, val_loader, optimizer,scheduler):  
   total_step = len(train_loader)
@@ -265,11 +250,30 @@ def train(model, train_loader, val_loader, optimizer,scheduler):
         }
     )
 
+    
 train(model, train_dataloader, validation_dataloader, optimizer,scheduler)
 
+import pandas as pd
 
-# Training and validation loss visualization
+# Display floats with two decimal places.
+pd.set_option('precision', 2)
+
+# Create a DataFrame from our training statistics.
+df_stats = pd.DataFrame(data=training_stats)
+
+# Use the 'epoch' as the row index.
+df_stats = df_stats.set_index('epoch')
+
+# A hack to force the column headers to wrap.
+#df = df.style.set_table_styles([dict(selector="th",props=[('max-width', '70px')])])
+
+# Display the table.
+df_stats
+
+
 import matplotlib.pyplot as plt
+% matplotlib inline
+
 import seaborn as sns
 
 # Use plot styling from seaborn.
@@ -293,7 +297,9 @@ plt.xticks([1, 2, 3, 4])
 plt.show()
 
 
-# Load test data
+
+import pandas as pd
+
 # Load the dataset into a pandas dataframe.
 df = pd.read_csv("data/twitter-2016test-BD.txt", delimiter='\t', header=None, names=['topic','label','tweet','id'])
 
@@ -311,7 +317,7 @@ label_dict = {'negative':0,'positive':1}
 
 for label in y_test:
   test_labels.append(label_dict[label])
-
+  
 input_ids,attention_masks,token_type_ids,labels = processdata(test_topic,test_tweet,test_labels)
 
 # Set the batch size.  
@@ -323,7 +329,6 @@ prediction_sampler = SequentialSampler(prediction_data)
 prediction_dataloader = DataLoader(prediction_data, sampler=prediction_sampler, batch_size=batch_size)
 
 
-#Find the Accuracy
 from sklearn import metrics
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import precision_score
@@ -370,4 +375,6 @@ def test(model,prediction_dataloader):
   print(f'precision: {test_precision:.4f}')
   print(f'recall: {test_recall:.4f}')
   
+  
 test(model,prediction_dataloader)
+

@@ -266,6 +266,25 @@ def train(model, train_loader, val_loader, optimizer,scheduler):
 
 train(model, train_dataloader, validation_dataloader, optimizer,scheduler)
 
+import pandas as pd
+
+# Display floats with two decimal places.
+pd.set_option('precision', 2)
+
+# Create a DataFrame from our training statistics.
+df_stats = pd.DataFrame(data=training_stats)
+
+# Use the 'epoch' as the row index.
+df_stats = df_stats.set_index('epoch')
+
+# A hack to force the column headers to wrap.
+#df = df.style.set_table_styles([dict(selector="th",props=[('max-width', '70px')])])
+
+# Display the table.
+print(df_stats)
+
+
+
 # Visualize the training and validation loss
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -293,6 +312,7 @@ plt.show()
 
 # Load Test data
 # Load the dataset into a pandas dataframe.
+import pandas as pd
 df = pd.read_csv("data/twitter-2016test-CE.txt", delimiter='\t', header=None, names=['id','topic','label','tweet'])
 
 # Report the number of sentences.
